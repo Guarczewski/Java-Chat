@@ -25,6 +25,7 @@ public class Client extends JFrame implements ActionListener {
     public JButton closeButt;
 
     static public List<String> msgToSend;
+    static public List<String> allChatLocalList;
 
     Client(){
         // Basic JFrame Thingy
@@ -33,6 +34,8 @@ public class Client extends JFrame implements ActionListener {
         final int WINDOW_HEIGHT = 720;
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setBounds(100,100,WINDOW_WIDTH,WINDOW_HEIGHT);
+
+
 
         JPanel mainJPanel = new JPanel(new BorderLayout());
         JPanel userJPanel = new JPanel(new BorderLayout());
@@ -44,11 +47,14 @@ public class Client extends JFrame implements ActionListener {
         sendButt.addActionListener(this);
         closeButt.addActionListener(this);
 
-        mainJPanel.add(msgBox, BorderLayout.CENTER);
+        JScrollPane msgBoxScroll = new JScrollPane(msgBox);
+        JScrollPane inBoxScroll = new JScrollPane(inBox);
+
+        mainJPanel.add(msgBoxScroll, BorderLayout.CENTER);
         mainJPanel.add(userJPanel, BorderLayout.SOUTH);
 
         userJPanel.add(closeButt, BorderLayout.WEST);
-        userJPanel.add(inBox, BorderLayout.CENTER);
+        userJPanel.add(inBoxScroll, BorderLayout.CENTER);
         userJPanel.add(sendButt, BorderLayout.EAST);
 
         setContentPane(mainJPanel);
@@ -56,6 +62,7 @@ public class Client extends JFrame implements ActionListener {
         setVisible(true);
 
         msgToSend = new ArrayList<>();
+        allChatLocalList = new ArrayList<>();
 
         Socket socket = null;
         ObjectInputStream objectInputStream = null;
@@ -92,13 +99,18 @@ public class Client extends JFrame implements ActionListener {
                         else {
                            try {
                                AcquiredList = (List<String>) finalObjectInputStream.readObject();
-                               tempBoxContainer = new StringBuilder(msgBox.getText());
+                          //     tempBoxContainer = new StringBuilder(msgBox.getText());
 
-                               for (String tempString : AcquiredList)
-                                   tempBoxContainer.append(tempString).append("\n");
+                               if (AcquiredList.size() > 0) {
+                                   allChatLocalList.addAll(AcquiredList);
+                                    UpdateChatWindow();
+                               }
+
+                             //  for (String tempString : AcquiredList)
+                               //    tempBoxContainer.append(tempString).append("\n");
 
 
-                               msgBox.setText(tempBoxContainer.toString());
+                             //  msgBox.setText(tempBoxContainer.toString());
 
                                AcquiredList.clear();
                            }
@@ -134,6 +146,18 @@ public class Client extends JFrame implements ActionListener {
     }
 
 
+    public void UpdateChatWindow(){
+
+        String out = "";
+
+        for (String temp : allChatLocalList)
+            out += temp + "\n";
+
+        msgBox.setText(out);
+
+
+    }
+
     public static void main(String[] args) {
         Main = new Client();
     }
@@ -143,7 +167,8 @@ public class Client extends JFrame implements ActionListener {
         if (e.getSource() == sendButt) {
             String tempString = Main.ClientName + ": " + inBox.getText();
             msgToSend.add(tempString);
-            msgBox.setText(Main.msgBox.getText() + tempString + "\n");
+            allChatLocalList.add(tempString);
+            UpdateChatWindow();
         }
     }
 }
